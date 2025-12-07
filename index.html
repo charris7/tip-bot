@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tip Oracle</title>
+
+<!-- Cozy Pajama Party Vibes -->
+<style>
+  body {
+    font-family: "Helvetica Neue", sans-serif;
+    background: linear-gradient(180deg, #f8e9ff, #ffe8d4);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #3a2b4b;
+  }
+
+  button {
+    background: #8659ff;
+    color: white;
+    border: none;
+    padding: 18px 30px;
+    font-size: 1.2rem;
+    border-radius: 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  #output {
+    margin-top: 30px;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    color: #2d1f34;
+    min-height: 120px;
+    white-space: pre-wrap;
+  }
+
+  #thinking {
+    font-size: 1.1rem;
+    opacity: 0.6;
+    display: none;
+  }
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h1>☕ Cozy Tip Oracle</h1>
+  <button id="go">Reveal My Tip</button>
+  <div id="thinking">Generating your wisdom…</div>
+  <div id="output"></div>
+</div>
+
+<script>
+// ----------------------
+// CONFIG
+// ----------------------
+const OPENAI_API_KEY = "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";  
+// Replace above with your actual OpenAI key
+
+// ----------------------
+// AGENTS (SYSTEM PROMPTS)
+// ----------------------
+const AGENTS = [
+  {
+    name: "roast",
+    system: `You are a brutal roast demon. Attack the person directly using "you" and "your". Be sexually explicit, crude, and mean. Roast their dating choices, their exes, their bedroom skills, their daddy issues, their terrible taste in partners, their emotional baggage, their relationship fuck-ups. Mix it up - sometimes poly drama, sometimes monogamous disasters, sometimes their inability to get a second date, sometimes their collection of toxic exes. Swear freely. Make it personal. No intros, no fluff - START with the roast immediately. 2 sentences MAXIMUM. Make every word count.`
+  },
+  {
+    name: "compliment",
+    system: `You give shockingly wholesome, cozy, warm compliments with winter vibes. Short, sweet, charming.`
+  },
+  {
+    name: "life",
+    system: `You give chaotic-neutral life advice like a millennial raccoon guru by a fireplace. Slightly unhinged but helpful. Max 3 sentences.`
+  }
+];
+
+// ----------------------
+// API CALL FUNCTION
+// ----------------------
+async function generateTip() {
+  const output = document.getElementById("output");
+  const thinking = document.getElementById("thinking");
+  thinking.style.display = "block";
+  output.textContent = "";
+
+  // TEMP: Only use roast agent for testing
+  const agent = AGENTS[0]; // Always picks roast
+  // const agent = AGENTS[Math.floor(Math.random() * AGENTS.length)];
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: agent.system },
+          { role: "user", content: "Roast this person at the party." }
+        ],
+        max_tokens: 60
+      })
+    });
+
+    const data = await response.json();
+    thinking.style.display = "none";
+
+    console.log("API response:", data);
+
+    // Extract text from Chat Completions API
+    const text = data.choices?.[0]?.message?.content;
+
+    if (text && text.trim().length > 0) {
+      output.textContent = text.trim();
+    } else {
+      output.textContent = "The cosmos is confused. Try again.";
+    }
+
+  } catch (err) {
+    thinking.style.display = "none";
+    output.textContent = "Something went wrong. Try again.";
+    console.error("Error:", err);
+  }
+}
+
+// ----------------------
+// EVENT LISTENER
+// ----------------------
+document.getElementById("go").addEventListener("click", generateTip);
+</script>
+
+</body>
+</html>
